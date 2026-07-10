@@ -1,0 +1,31 @@
+# Dependencies (reinstalled per machine with `npm install`)
+node_modules/
+
+# Build output (regenerated per machine with `npm run dist`)
+dist/
+desktop/dist/
+out/
+build/Release/
+
+# Generated packaging icons — rebuilt from desktop/icon-src/ by `npm run icons`
+# (source of truth is desktop/icon-src/; these are regenerated, so not tracked)
+desktop/build/
+
+# Logs & debug
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Environment / secrets
+.env
+.env.local
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
