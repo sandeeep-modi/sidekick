@@ -1,74 +1,65 @@
-# Reword
+# Sidekick
 
 Rewrite selected text in **any app** with a keystroke — professional, polite,
-concise, or casual — without copy-pasting into ChatGPT each time. Powered by
-your own free Google Gemini API key.
+concise, or casual — and ask an AI quick questions without leaving what you're
+doing. A tray app for Windows and macOS, powered by your own free Google Gemini
+API key. No account, no server: everything runs locally.
 
-## → The app lives in [`desktop/`](desktop/)
+- **Rewrite** — select text anywhere, press `Ctrl/Cmd+Shift+R`, and it's rewritten in place.
+- **Quick Chat** — press `Ctrl/Cmd+Shift+C` for a floating chat popup. Nothing is ever saved to disk.
 
-A minimal Electron menu-bar / tray app for macOS + Windows. Select text
-anywhere, press your shortcut, and it's rewritten in place.
+## Run it
+
+Requires Node.js 18+.
 
 ```bash
-cd desktop
 npm install
 npm start
 ```
 
-Full setup and architecture are in [desktop/README.md](desktop/README.md).
+The settings window opens and Sidekick appears in your tray. Paste a
+[free Gemini API key](https://aistudio.google.com/apikey), hit **Save**, then
+**Test key**.
 
-## Building installers
+## Build an installer
 
 Build on the **same OS** you're targeting — electron-builder does not reliably
-cross-compile. Each command regenerates icons automatically.
-
-### Windows → `.exe` installer
+cross-compile. Icons are regenerated automatically as part of each build.
 
 ```bash
-cd desktop
-npm install
-npm run dist:win
-```
-Output: `desktop/dist/Reword Setup <version>.exe` (installer) and
-`desktop/dist/win-unpacked/Reword.exe` (portable).
-
-> **One-time:** the installer step unpacks a signing toolkit containing symlinks,
-> which Windows blocks unless **Developer Mode** is on
-> (**Settings → System → For developers → Developer Mode**) or the terminal runs
-> **as Administrator**. For just the portable app, use `npm run pack:win` (no
-> installer, no signing, no symlink step).
-
-### macOS → `.dmg`
-
-```bash
-cd desktop
-npm install
-npm run dist:mac
-```
-Output: `desktop/dist/Reword-<version>.dmg`. Drag Reword to Applications.
-
-### Both are unsigned (personal use)
-- **Windows:** SmartScreen → **More info → Run anyway**.
-- **macOS:** right-click the app → **Open** the first time (Gatekeeper), and grant
-  **Accessibility** permission on the first rewrite (needed for Copy/Paste).
-
-## Repository layout
-
-```
-rewriter/
-├─ desktop/       the Reword app (Electron) — the main project
-├─ extension/     the original Chrome-extension prototype (browser-only)
-└─ context.md    complete project reference
+npm run dist:win   # -> dist/Sidekick Setup <version>.exe
+npm run dist:mac   # -> dist/Sidekick-<version>.dmg
 ```
 
-## `extension/`
+> **Windows, one-time:** the installer step unpacks a signing toolkit containing
+> symlinks, which Windows blocks unless **Developer Mode** is on
+> (**Settings → System → For developers**) or the terminal runs **as Administrator**.
+> For just the portable app, use `npm run pack:win`.
 
-The first prototype: right-click selected text → Rewrite, inside the browser
-only. Kept for reference. See [extension/README.md](extension/README.md).
+Both builds are unsigned. Windows SmartScreen: **More info → Run anyway**. macOS:
+right-click → **Open** the first time, and grant **Accessibility** permission on
+the first rewrite (it's needed to simulate Copy/Paste).
+
+## Layout
+
+```
+src/
+├─ main/        Electron main process — windows, tray, shortcuts, IPC, settings
+├─ gemini/      Gemini API client, models, tones (no Electron, no UI)
+├─ preload/     one contextBridge per window, each exposing only what it needs
+└─ renderer/    the windows themselves (html + css + es modules)
+icons/          the icon PNGs — loaded at runtime, and the source for the installers
+scripts/        pack-icons.js — packs icons/*.png into build/icon.ico + .icns
+```
+
+`npm run lint` and `npm run format` keep it tidy.
+[context.md](context.md) is the full project reference.
 
 ## Security
 
-No API keys or secrets are committed. Each user enters their own Gemini key in
-the app, and it's stored locally (the app's userData folder / the browser's
-extension storage) — never in the repo. Build outputs (`dist/`) and dependencies
-(`node_modules/`) are git-ignored.
+Your Gemini API key is entered in the app and stored locally in the app's
+userData folder — never in the repo. It is sent only to Google's Gemini endpoint.
+
+The renderer windows are contextIsolated with no Node access, and each gets its
+own preload: the chat window renders model output as HTML, so it is deliberately
+given no channel that can reach the API key.
