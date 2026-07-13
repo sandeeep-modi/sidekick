@@ -1,15 +1,13 @@
 # Dependencies (reinstalled per machine with `npm install`)
 node_modules/
 
-# Build output (regenerated per machine with `npm run dist`)
+# Build output (regenerated with `npm run dist`)
 dist/
-desktop/dist/
 out/
-build/Release/
 
-# Generated packaging icons — rebuilt from desktop/icon-src/ by `npm run icons`
-# (source of truth is desktop/icon-src/; these are regenerated, so not tracked)
-desktop/build/
+# Generated packaging icons (.ico/.icns) — rebuilt from icons/ by `npm run icons`
+# (icons/ is the source of truth, so these derived files are not tracked)
+build/
 
 # Logs & debug
 *.log
