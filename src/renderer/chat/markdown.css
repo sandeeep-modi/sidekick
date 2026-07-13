@@ -1,0 +1,71 @@
+/* Rendered markdown, AI bubbles only */
+
+.bubble.md p {
+  margin-bottom: 6px;
+}
+
+.bubble.md p:last-child {
+  margin-bottom: 0;
+}
+
+.bubble.md h1,
+.bubble.md h2,
+.bubble.md h3 {
+  margin: 8px 0 3px;
+  font-weight: 700;
+}
+
+.bubble.md h1 {
+  font-size: 13.5px;
+}
+
+.bubble.md h2 {
+  font-size: 13px;
+}
+
+.bubble.md h3 {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.bubble.md ul {
+  margin: 3px 0 6px 15px;
+}
+
+.bubble.md li {
+  margin-bottom: 2px;
+}
+
+.bubble.md hr {
+  margin: 7px 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.bubble.md code {
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgb(0 0 0 / 6%);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.bubble.md pre {
+  margin: 5px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.bubble.md pre code {
+  padding: 0;
+  border: none;
+  background: none;
+  line-height: 1.6;
+  white-space: pre;
+}

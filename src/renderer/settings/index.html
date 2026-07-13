@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    />
+    <title>Sidekick</title>
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+
+  <body>
+    <header>
+      <span class="dot"></span>
+      <h1>Sidekick</h1>
+    </header>
+    <p class="tag">Select text anywhere, press your shortcut, and it's rewritten in place.</p>
+
+    <div class="group">
+      <label for="key">Gemini API key</label>
+      <div class="row">
+        <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="AIza…" />
+        <button id="toggle" class="small" type="button">Show</button>
+      </div>
+      <div class="hint">
+        Stored only on this computer. Get one free at aistudio.google.com/apikey
+      </div>
+    </div>
+
+    <div class="group">
+      <label for="model">Model</label>
+      <select id="model"></select>
+    </div>
+
+    <div class="group">
+      <label>Default tone</label>
+      <div class="tones" id="tones"></div>
+    </div>
+
+    <div class="group">
+      <label>Shortcut</label>
+      <div class="shortcut" id="shortcutBox">
+        <code id="shortcutText">—</code>
+        <button id="recordShortcut" class="small" type="button">Change</button>
+      </div>
+      <div class="hint">Select text in any app, then press this to rewrite it.</div>
+    </div>
+
+    <div class="group switch">
+      <input id="autolaunch" type="checkbox" />
+      <label for="autolaunch">Start Sidekick at login</label>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-title">Quick Chat</div>
+
+    <div class="group">
+      <label>Open / close shortcut</label>
+      <div class="shortcut" id="chatShortcutBox">
+        <code id="chatShortcutText">—</code>
+        <button id="recordChatShortcut" class="small" type="button">Change</button>
+      </div>
+      <div class="hint">Opens and hides the chat popup.</div>
+    </div>
+
+    <div class="group">
+      <label>End session shortcut</label>
+      <div class="shortcut" id="chatCloseShortcutBox">
+        <code id="chatCloseShortcutText">—</code>
+        <button id="recordChatCloseShortcut" class="small" type="button">Change</button>
+      </div>
+      <div class="hint">Ends the chat session, with a confirmation prompt.</div>
+    </div>
+
+    <div class="group">
+      <label for="chatContext">Chat context <span class="optional">(optional)</span></label>
+      <textarea
+        id="chatContext"
+        rows="3"
+        spellcheck="false"
+        placeholder="e.g. I'm a senior React developer working on a B2B SaaS product…"
+      ></textarea>
+      <div class="hint">
+        Silently included at the start of every Quick Chat session. Not stored with any
+        conversation.
+      </div>
+    </div>
+
+    <div class="group switch">
+      <input id="chatCloseWarning" type="checkbox" />
+      <label for="chatCloseWarning">Confirm before ending a chat session</label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="actions">
+      <button id="save" class="accent grow" type="button">Save</button>
+      <button id="test" type="button">Test key</button>
+      <button id="quit" type="button">Quit</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="errbox" class="errbox"></div>
+
+    <script type="module" src="settings.js"></script>
+  </body>
+</html>

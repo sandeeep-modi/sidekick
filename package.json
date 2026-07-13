@@ -1,0 +1,56 @@
+{
+  "name": "sidekick",
+  "productName": "Sidekick",
+  "version": "1.0.2",
+  "description": "Rewrite selected text and chat with AI in any app, with a keystroke.",
+  "main": "src/main/index.js",
+  "author": "Jaskarn Singh",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "icons": "node scripts/pack-icons.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "pack": "npm run icons && electron-builder --dir",
+    "pack:win": "npm run icons && electron-builder --win --dir",
+    "dist": "npm run icons && electron-builder",
+    "dist:win": "npm run icons && electron-builder --win",
+    "dist:mac": "npm run icons && electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.3.0"
+  },
+  "build": {
+    "appId": "com.sidekick.app",
+    "productName": "Sidekick",
+    "files": [
+      "src/**/*",
+      "icons/icon-16.png",
+      "icons/icon-32.png",
+      "icons/icon-64.png",
+      "icons/icon-256.png",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg",
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
+    }
+  }
+}
