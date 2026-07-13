@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- This window renders model output as HTML, so it gets the strictest policy
+         we can give it: no network of any kind, no inline script or style. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    />
+    <title>Sidekick Chat</title>
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="chat.css" />
+    <link rel="stylesheet" href="markdown.css" />
+    <link rel="stylesheet" href="confirm-dialog.css" />
+  </head>
+
+  <body>
+    <div class="titlebar">
+      <span class="dot"></span>
+      <span class="titlebar-text">Quick Chat</span>
+      <button class="titlebar-close" id="close-btn" type="button" title="End session">✕</button>
+    </div>
+
+    <div class="disclaimer">
+      <span class="disclaimer-icon">🔒</span>
+      <span>
+        No history stored · fresh session each open · AI can make mistakes · using
+        <span class="model-badge" id="model-name">—</span>
+      </span>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="empty-state" id="empty-state">
+        <span class="hint-icon">💬</span>
+        <p>
+          Ask anything.<br />
+          <strong>Enter</strong> to send &nbsp;·&nbsp; <strong>Shift+Enter</strong> for a new line.
+        </p>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <textarea
+        id="chat-input"
+        rows="1"
+        placeholder="Ask something…"
+        autocomplete="off"
+        spellcheck="true"
+      ></textarea>
+      <button id="send-btn" type="button" title="Send (Enter)">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="confirm-overlay" id="confirm-overlay" hidden>
+      <div class="confirm-dialog">
+        <div class="confirm-icon">💬</div>
+        <h2 class="confirm-title">End this session?</h2>
+        <p class="confirm-desc">All messages will be lost. Chat history is never saved.</p>
+        <label class="confirm-check-row">
+          <input type="checkbox" id="dont-show-again" />
+          <span>Don't show this again</span>
+        </label>
+        <div class="confirm-actions">
+          <button id="confirm-cancel" type="button">Cancel</button>
+          <button id="confirm-end" type="button">End session</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="chat.js"></script>
+  </body>
+</html>
