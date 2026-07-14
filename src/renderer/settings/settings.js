@@ -134,8 +134,7 @@ function onRecordingKeydown(event) {
     return;
   }
 
-  // Reject a combo already bound to another action — two actions sharing one
-  // accelerator means only one of them ends up working.
+  // Reject a combo already bound to another action, or only one of them would work.
   const clash = RECORDERS.find((r) => r.id !== id && accelerators[r.id] === result.accelerator);
   if (clash) {
     stopRecording();
@@ -153,8 +152,7 @@ function onRecordingKeydown(event) {
 let ready = false; // true once load() has populated the form
 
 async function load() {
-  // Saving a half-loaded form would blank the key and shortcuts — keep the
-  // buttons disabled until every field is populated.
+  // Keep the buttons disabled until every field is populated — a half-loaded save would blank them.
   els.save.disabled = true;
   els.test.disabled = true;
 
@@ -172,8 +170,7 @@ async function load() {
       return option;
     })
   );
-  // If a saved model is no longer offered, fall back visibly to the first one
-  // rather than showing a blank select that would save an empty model.
+  // Fall back to the first model if the saved one is no longer offered, not a blank select.
   els.model.value = models.some((m) => m.id === settings.model) ? settings.model : models[0]?.id;
 
   els.autoLaunch.checked = settings.autoLaunch;
@@ -258,8 +255,7 @@ for (const recorder of RECORDERS) {
 }
 
 window.addEventListener("keydown", onRecordingKeydown);
-// If the window loses focus mid-recording, stop — otherwise the global shortcuts
-// would stay suspended (dead) until the user comes back and finishes.
+// Stop on blur, or the global shortcuts would stay suspended (dead) until the user returns.
 window.addEventListener("blur", () => {
   if (recordingId) stopRecording();
 });

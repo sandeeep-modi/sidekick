@@ -30,8 +30,7 @@ function createSettingsWindow() {
   win.setMenuBarVisibility(false);
   win.loadFile(path.join(__dirname, "..", "..", "renderer", "settings", "index.html"));
 
-  // Hide instead of close — but let the close through when the app is really
-  // quitting, or this handler would veto app.quit().
+  // Hide instead of close, but let it through when quitting or this would veto app.quit().
   win.on("close", (e) => {
     if (app.isQuitting) return;
     e.preventDefault();

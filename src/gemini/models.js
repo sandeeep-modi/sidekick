@@ -1,10 +1,6 @@
-// A brand-new free-tier key is only provisioned for the 3.x family: 2.0 returns
-// 429 `limit: 0` and 2.5 returns 404. Keep this list to models a fresh key can use.
-//
-// Free-tier quotas differ wildly per model. gemini-3.5-flash allows only ~5 requests
-// before it 429s ("limit: 5" on generate_content_free_tier_requests) and it 503s under
-// load — fine for the occasional rewrite, useless as a daily driver. The lite models
-// have a real quota and answer in under a second, so they stay the default.
+// A fresh free-tier key only works on the 3.x family (2.0 → 429, 2.5 → 404). The lite
+// models have a real quota and sub-second replies, so they stay the default;
+// gemini-3.5-flash 429s after ~5 requests, so it's offered but not the default.
 const DEFAULT_MODEL = "gemini-3.1-flash-lite";
 
 const MODELS = [

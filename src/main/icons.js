@@ -1,5 +1,4 @@
-// Tray and window icons, loaded straight from the master PNGs in icons/.
-// The installer's .ico/.icns are derived from the same files by `npm run icons`.
+// Tray and window icons, loaded from the master PNGs in icons/ (same source as the installer icons).
 
 const path = require("path");
 const { nativeImage } = require("electron");

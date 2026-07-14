@@ -1,5 +1,4 @@
-// Turning keyboard events into Electron accelerators, and back into something
-// a human can read.
+// Turns keyboard events into Electron accelerators, and back into readable labels.
 
 const IS_MAC = navigator.platform.toLowerCase().includes("mac");
 

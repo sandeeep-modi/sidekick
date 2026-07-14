@@ -1,7 +1,5 @@
-// Encrypts the API key at rest with the OS keystore (DPAPI on Windows, Keychain
-// on macOS, libsecret on Linux) via Electron's safeStorage. If encryption isn't
-// available (e.g. a Linux box with no keyring), callers fall back to plaintext —
-// a readable key beats a lost one.
+// Encrypts the API key at rest via the OS keystore (safeStorage). If no keystore is
+// available (some Linux setups), callers fall back to plaintext — a readable key beats a lost one.
 
 const { safeStorage } = require("electron");
 

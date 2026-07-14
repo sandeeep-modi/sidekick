@@ -2,8 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- This window renders model output as HTML, so it gets the strictest policy
-         we can give it: no network of any kind, no inline script or style. -->
+    <!-- Strictest CSP — this window renders model output as HTML: no network, no inline script/style. -->
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;"

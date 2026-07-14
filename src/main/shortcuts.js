@@ -1,6 +1,4 @@
-// Every global shortcut lives here. Each is re-registered individually rather
-// than via unregisterAll(), so changing one in Settings can't silently drop the
-// others.
+// Every global shortcut, re-registered individually so changing one can't drop the others.
 
 const { globalShortcut } = require("electron");
 
@@ -23,9 +21,7 @@ function registerShortcut(id, accelerator, handler) {
 
   if (!accelerator) return false;
 
-  // Refuse an accelerator another action already holds. Without this, registering
-  // it would silently steal it, and later re-registering this id would unregister
-  // the shared accelerator and break the other action too.
+  // Refuse an accelerator another action already holds, or re-registering later breaks both.
   for (const [otherId, otherAccel] of registered) {
     if (otherId !== id && otherAccel === accelerator) return false;
   }
