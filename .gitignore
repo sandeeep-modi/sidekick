@@ -27,3 +27,5 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+.agent/

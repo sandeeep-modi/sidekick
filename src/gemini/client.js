@@ -3,27 +3,21 @@
 
 const { DEFAULT_MODEL } = require("./models");
 
-// Gemini returns 503 when a model is momentarily overloaded — it is not a problem
-// with the key or the request, and the same call usually succeeds a second later.
-// Retry those (and the other 5xx) rather than showing the user a scary error.
-// 429 is deliberately NOT retried: that is a real quota limit, and hammering it
-// makes things worse.
+// Retry 5xx (usually a transient overload). 429 is NOT retried — it's a real quota
+// limit, and hammering it makes things worse.
 const RETRY_STATUSES = new Set([500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAYS_MS = [600, 1500];
 
-// Without this, a slow model hangs the app forever: there is no way to cancel a
-// rewrite, and the settings window sits on "Testing…" indefinitely. A rewrite is
-// a short prompt — if it hasn't come back in 30s, something is wrong. Timeouts
-// are retried like a 503, since they usually mean the model is momentarily busy.
+// A rewrite can't be cancelled, so bound it: 30s means a slow model can't hang the
+// app forever. Timeouts are retried like a 503 (usually a momentarily busy model).
 const REQUEST_TIMEOUT_MS = 30_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const isTimeout = (error) => error?.name === "TimeoutError" || error?.name === "AbortError";
 
-// The key goes in a header, not the query string: query params are the part most
-// likely to leak into proxy logs, crash dumps, or a URL captured in a stack trace.
+// The key goes in a header, not the query string — query params leak into logs most easily.
 const endpoint = (model) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 

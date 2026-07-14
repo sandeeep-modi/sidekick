@@ -24,9 +24,8 @@ function defaultPosition(width, height) {
   };
 }
 
-// Is enough of this rectangle on some connected display to grab and drag? Guards
-// against restoring onto a monitor that has since been unplugged — the window is
-// frameless and off the taskbar, so off-screen means unreachable.
+// Is enough of this rectangle on a connected display to grab? Guards against restoring
+// onto an unplugged monitor — the frameless, taskbar-less window would be unreachable.
 function isReachable(x, y, width, height) {
   const MIN_VISIBLE = 80;
   return screen.getAllDisplays().some(({ workArea: a }) => {
@@ -92,8 +91,7 @@ function createChatWindow() {
   win.on("move", debouncedPersist);
   win.on("resize", debouncedPersist);
 
-  // Hide instead of close — but let the close through when the app is really
-  // quitting, or this handler would veto app.quit() and the app could never exit.
+  // Hide instead of close, but let it through when quitting or this would veto app.quit().
   win.on("close", (e) => {
     persistBounds();
     if (app.isQuitting) return;

@@ -1,6 +1,5 @@
-// Bridge for the Quick Chat window. It renders model output as HTML, so it gets
-// the narrowest surface we can give it: no settings channel, and no way to reach
-// the API key. Prompts are sent to main; only the reply text comes back.
+// Bridge for the Quick Chat window — the narrowest surface: no settings channel and
+// no way to reach the API key, since it renders model output as HTML.
 
 const { contextBridge, ipcRenderer } = require("electron");
 

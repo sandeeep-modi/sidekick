@@ -1,9 +1,6 @@
-// A small markdown renderer for AI replies.
-//
-// The input is model output, which we do not trust: it lands in innerHTML in a
-// window that can talk to main. So everything is HTML-escaped before a single
-// markdown pattern is applied, and the only HTML in the result is HTML this file
-// generated itself.
+// Markdown renderer for AI replies. Model output is untrusted and lands in innerHTML,
+// so everything is HTML-escaped before any markdown pattern runs; the only HTML in the
+// output is HTML this file generated itself.
 
 const CODE_BLOCK = /```([^\n]*)\n?([\s\S]*?)```/g;
 const PLACEHOLDER = /^\0BLK(\d+)\0$/;
@@ -96,14 +93,15 @@ function renderLines(text) {
   return out.join("");
 }
 
-// The lazy code-fence regex is O(n²) on a very long reply with an unterminated
-// fence. Gemini replies are token-capped well under this, so anything larger is
-// pathological — cap it rather than risk freezing the UI.
+// The code-fence regex is O(n²) on an unterminated fence; cap length so a pathological
+// reply can't freeze the UI. Real Gemini replies are token-capped well under this.
 const MAX_RENDER_CHARS = 100_000;
 
 /** @returns {string} HTML safe to assign to innerHTML. */
 export function renderMarkdown(raw) {
-  const input = raw.length > MAX_RENDER_CHARS ? raw.slice(0, MAX_RENDER_CHARS) : raw;
+  // Strip NUL so model output can't forge a \0BLK{n}\0 code-block placeholder.
+  const clean = raw.replace(/\0/g, "");
+  const input = clean.length > MAX_RENDER_CHARS ? clean.slice(0, MAX_RENDER_CHARS) : clean;
   const { text, blocks } = extractCodeBlocks(input);
 
   return renderLines(escapeHtml(text)).replace(/\0BLK(\d+)\0/g, (_match, i) => blocks[Number(i)]);

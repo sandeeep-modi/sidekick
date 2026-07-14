@@ -22,8 +22,7 @@ let history = [];
 let busy = false;
 let showCloseWarning = true;
 
-// Bumped on every reset. A reply that lands after its session ended belongs to a
-// conversation the user threw away, so it must not leak into the new one.
+// Bumped on every reset, so a reply that lands after its session ended can be dropped.
 let sessionId = 0;
 
 let typingRow = null;
@@ -132,8 +131,7 @@ async function sendMessage() {
   try {
     result = await window.api.send({ history: priorTurns, userText: text });
   } catch {
-    // The invoke itself rejected (main crashed, channel gone). Surface it rather
-    // than leaving the input disabled with the typing dots spinning forever.
+    // The invoke itself rejected (main crashed / channel gone) — surface it, don't hang.
     result = { error: "Something went wrong. Try again." };
   }
 
@@ -219,8 +217,7 @@ window.api.onReset(({ model, closeWarning }) => {
 
 window.api.onCloseRequested(requestClose);
 
-// The window is created hidden at launch, so it may sit here for a long time
-// before its first "chat:reset" — seed the UI from settings now.
+// Created hidden at launch, so seed the UI from settings before the first "chat:reset".
 async function init() {
   const { model, closeWarning } = await window.api.init();
   showCloseWarning = closeWarning;

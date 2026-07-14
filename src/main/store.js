@@ -1,6 +1,5 @@
-// Settings persisted as JSON in the app's userData folder. The API key is held in
-// memory as plaintext but encrypted on disk (see secret.js); the rest is stored
-// as-is.
+// Settings persisted as JSON in userData. The API key is plaintext in memory but
+// encrypted on disk (see secret.js); the rest is stored as-is.
 
 const fs = require("fs");
 const path = require("path");
@@ -25,8 +24,7 @@ const DEFAULTS = {
 let file = null;
 let data = {}; // in-memory: apiKey is plaintext here
 
-// On-disk the key lives in `apiKeyEnc` (base64 ciphertext), not `apiKey`. Convert
-// between the two shapes here.
+// On disk the key is `apiKeyEnc` (base64 ciphertext), not `apiKey`.
 function fromDisk(raw) {
   const obj = JSON.parse(raw);
   if (typeof obj.apiKeyEnc === "string") {
@@ -50,16 +48,14 @@ function toDisk(mem) {
 }
 
 function writeToDisk() {
-  // Temp file + rename, so a crash mid-write can't truncate settings.json and lose
-  // the key. Rename is atomic on the same volume.
+  // Temp file + atomic rename, so a crash mid-write can't truncate settings.json.
   const tmp = `${file}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(toDisk(data), null, 2));
   fs.renameSync(tmp, file);
 }
 
 function init(userDataPath) {
-  // On first run the userData folder may not exist yet; without this the first
-  // write would throw and nothing would ever persist.
+  // The userData folder may not exist yet on first run.
   fs.mkdirSync(userDataPath, { recursive: true });
   file = path.join(userDataPath, "settings.json");
 
@@ -70,9 +66,7 @@ function init(userDataPath) {
     data = fromDisk(raw);
   } catch (error) {
     data = {};
-    // A corrupt file (as opposed to first run) would be silently overwritten with
-    // defaults on the next save — losing the key without a trace. Keep a copy so
-    // it can be recovered, and let the caller warn the user.
+    // Preserve a corrupt file instead of overwriting it with defaults and losing the key.
     if (error.code !== "ENOENT") {
       try {
         fs.renameSync(file, `${file}.corrupt`);
@@ -111,8 +105,7 @@ function publicSettings() {
  * @returns {boolean} whether the write reached disk (false = the caller should tell the user).
  */
 function set(patch) {
-  // Drop undefined values: a spread lets `undefined` override a default, which
-  // would e.g. blank out a shortcut. Only persist real values.
+  // Drop undefined values, or they'd override a default (e.g. blank out a shortcut).
   for (const [key, value] of Object.entries(patch)) {
     if (value !== undefined) data[key] = value;
   }

@@ -1,14 +1,9 @@
-// Simulates Copy / Paste at the OS level using built-in tools (no native deps),
-// so the rewrite can read and replace a selection in any other app.
-//
-// Windows: PowerShell SendKeys. macOS: osascript (needs Accessibility permission,
-// prompted on first use). Linux: xdotool (must be installed separately).
+// Simulates OS-level Copy/Paste with built-in tools (no native deps): Windows
+// PowerShell SendKeys, macOS osascript (needs Accessibility), Linux xdotool.
 
 const { execFile } = require("child_process");
 
-// execFile (not exec) means no shell is involved and args are passed as an array,
-// so nothing here can be turned into shell injection. The letter is validated too,
-// as belt-and-suspenders in case a future caller passes something other than c/v.
+// execFile (not exec) means no shell, so args can't become shell injection.
 function run(command, args) {
   return new Promise((resolve, reject) => {
     execFile(command, args, { windowsHide: true }, (err) => (err ? reject(err) : resolve()));

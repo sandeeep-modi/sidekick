@@ -1,7 +1,5 @@
-// Every ipcMain handler. Channels are grouped by the window they serve, and the
-// sensitive ones verify the sender: a renderer can only call what its own preload
-// exposes, but a compromised chat window must not be able to reach the API key by
-// invoking a settings channel directly.
+// Every ipcMain handler, grouped by window. Sensitive channels verify the sender so
+// a compromised chat window can't invoke a settings channel and reach the API key.
 
 const { app, ipcMain } = require("electron");
 const store = require("./store");
@@ -76,9 +74,7 @@ function registerIpc() {
     return { settings: store.publicSettings(), saved, shortcuts };
   });
 
-  // The shortcut recorder in Settings needs the global shortcuts out of the way,
-  // or pressing e.g. the current chat combo would just open chat instead of being
-  // recorded. Settings suspends them while recording and resumes on save/close.
+  // Muted while the recorder listens, so pressing a combo records it instead of firing it.
   ipcMain.handle("shortcuts:suspend", (event) => {
     assertSender(event, getSettingsWindow(), "shortcuts:suspend");
     unregisterAllShortcuts();
@@ -101,16 +97,17 @@ function registerIpc() {
     }
   });
 
-  ipcMain.handle("app:quit", () => {
+  ipcMain.handle("app:quit", (event) => {
+    assertSender(event, getSettingsWindow(), "app:quit");
     app.isQuitting = true;
     app.quit();
   });
 
   // ---- Chat window ----------------------------------------------------------
-  // Nothing here can read the API key: it is used in main, and only the reply
-  // text ever crosses back to the renderer.
+  // Nothing here can read the API key — only reply text crosses back to the renderer.
 
-  ipcMain.handle("chat:init", () => {
+  ipcMain.handle("chat:init", (event) => {
+    assertSender(event, getChatWindow(), "chat:init");
     const { model, chatCloseWarning } = store.all();
     return { model, closeWarning: chatCloseWarning };
   });

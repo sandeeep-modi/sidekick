@@ -1,7 +1,6 @@
 const { generate } = require("./client");
 
-// Flash Lite has no system role, so standing context is injected as a synthetic
-// opening exchange — well-supported, and the model treats it as prior agreement.
+// Flash Lite has no system role, so standing context is injected as a synthetic opening exchange.
 function contextTurns(context) {
   if (!context?.trim()) return [];
   return [
