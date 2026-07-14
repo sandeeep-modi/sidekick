@@ -27,11 +27,22 @@ then:
    shortcut, macOS needs permission to simulate Copy/Paste. Go to
    **System Settings → Privacy & Security → Accessibility** and turn on
    **Sidekick**.
-4. **Add your Gemini API key.** Open Sidekick's settings from the tray, paste a
-   [free Gemini API key](https://aistudio.google.com/apikey), hit **Save**, then
-   **Test key**.
+4. **Add your Gemini API key** (see below), paste it into Sidekick's settings,
+   hit **Save**, then **Test key**.
 
 That's it — select text in any app and press `Cmd+Shift+R`.
+
+### Getting a free Gemini API key
+
+Sidekick uses your own Google Gemini key — it's free and takes a minute:
+
+1. Go to [Google AI Studio → API keys](https://aistudio.google.com/apikey).
+2. Sign in with any Google account.
+3. Click **Create API key** (choose or create a project if prompted).
+4. Copy the key (it starts with `AIza...`) and paste it into Sidekick's settings.
+
+The key is stored locally on your Mac and sent only to Google's Gemini endpoint —
+never to any other server.
 
 > Built for both Apple Silicon and Intel. If a universal `.dmg` isn't listed,
 > the `arm64` build is for Apple Silicon (M1–M4) Macs.
