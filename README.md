@@ -8,7 +8,35 @@ API key. No account, no server: everything runs locally.
 - **Rewrite** — select text anywhere, press `Ctrl/Cmd+Shift+R`, and it's rewritten in place.
 - **Quick Chat** — press `Ctrl/Cmd+Shift+C` for a floating chat popup. Nothing is ever saved to disk.
 
-## Run it
+## Download for macOS
+
+Grab the latest **`.dmg`** from the
+[**Releases**](https://github.com/sandeeep-modi/sidekick/releases/latest) page,
+then:
+
+1. **Open the `.dmg`** and drag **Sidekick** into your **Applications** folder.
+2. **First launch is blocked** because the app is unsigned. macOS will say
+   *"Sidekick can't be opened"* or *"is damaged"*. This is expected — clear it
+   once by running this in **Terminal**:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Sidekick.app
+   ```
+   Then open Sidekick normally. (If you didn't download it — e.g. you built it
+   yourself — you can skip this and just right-click → **Open**.)
+3. **Grant Accessibility permission.** The first time you use the rewrite
+   shortcut, macOS needs permission to simulate Copy/Paste. Go to
+   **System Settings → Privacy & Security → Accessibility** and turn on
+   **Sidekick**.
+4. **Add your Gemini API key.** Open Sidekick's settings from the tray, paste a
+   [free Gemini API key](https://aistudio.google.com/apikey), hit **Save**, then
+   **Test key**.
+
+That's it — select text in any app and press `Cmd+Shift+R`.
+
+> Built for both Apple Silicon and Intel. If a universal `.dmg` isn't listed,
+> the `arm64` build is for Apple Silicon (M1–M4) Macs.
+
+## Run it (from source)
 
 Requires Node.js 18+.
 
