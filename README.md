@@ -10,9 +10,16 @@ API key. No account, no server: everything runs locally.
 
 ## Download for macOS
 
-Grab the latest **`.dmg`** from the
-[**Releases**](https://github.com/sandeeep-modi/sidekick/releases/latest) page,
-then:
+Download the right **`.dmg`** for your Mac from the
+[**Releases**](https://github.com/sandeeep-modi/sidekick/releases/latest) page:
+
+- **Apple Silicon (M1–M4)** → [`Sidekick-1.0.2-arm64.dmg`](https://github.com/sandeeep-modi/sidekick/releases/download/v1.0.2/Sidekick-1.0.2-arm64.dmg)
+- **Intel Macs** → [`Sidekick-1.0.2-x64.dmg`](https://github.com/sandeeep-modi/sidekick/releases/download/v1.0.2/Sidekick-1.0.2-x64.dmg)
+
+> Not sure which you have? Click the  menu → **About This Mac**. "Apple M1/M2/M3/M4"
+> means Apple Silicon; "Intel" means the Intel build.
+
+Then:
 
 1. **Open the `.dmg`** and drag **Sidekick** into your **Applications** folder.
 2. **First launch is blocked** because the app is unsigned. macOS will say
@@ -44,9 +51,6 @@ Sidekick uses your own Google Gemini key — it's free and takes a minute:
 The key is stored locally on your Mac and sent only to Google's Gemini endpoint —
 never to any other server.
 
-> Built for both Apple Silicon and Intel. If a universal `.dmg` isn't listed,
-> the `arm64` build is for Apple Silicon (M1–M4) Macs.
-
 ## Run it (from source)
 
 Requires Node.js 18+.
@@ -67,7 +71,14 @@ cross-compile. Icons are regenerated automatically as part of each build.
 
 ```bash
 npm run dist:win   # -> dist/Sidekick Setup <version>.exe
-npm run dist:mac   # -> dist/Sidekick-<version>.dmg
+npm run dist:mac   # -> dist/Sidekick-<version>.dmg (host architecture)
+```
+
+On macOS you can build for a specific chip explicitly:
+
+```bash
+npx electron-builder --mac --arm64   # -> dist/Sidekick-<version>-arm64.dmg (Apple Silicon)
+npx electron-builder --mac --x64     # -> dist/Sidekick-<version>-x64.dmg   (Intel)
 ```
 
 > **Windows, one-time:** the installer step unpacks a signing toolkit containing
