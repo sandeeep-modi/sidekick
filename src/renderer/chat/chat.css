@@ -10,10 +10,8 @@ body {
   line-height: 1.55;
 }
 
-/* Title bar */
-
 .titlebar {
-  -webkit-app-region: drag; /* the whole bar drags the frameless window */
+  -webkit-app-region: drag;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -38,6 +36,29 @@ body {
   font-weight: 650;
 }
 
+.titlebar-btn {
+  -webkit-app-region: no-drag;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.titlebar-btn:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
 .titlebar-close {
   -webkit-app-region: no-drag;
   padding: 3px 5px;
@@ -57,8 +78,6 @@ body {
   color: var(--text);
   background: var(--border);
 }
-
-/* Disclaimer */
 
 .disclaimer {
   display: flex;
@@ -89,8 +108,6 @@ body {
   font-size: 10px;
   font-weight: 600;
 }
-
-/* Message list */
 
 .messages {
   flex: 1;
@@ -129,8 +146,6 @@ body {
   font-size: 11.5px;
 }
 
-/* Bubbles */
-
 .bubble-row {
   display: flex;
   max-width: 87%;
@@ -142,6 +157,8 @@ body {
 
 .bubble-row.ai {
   align-self: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .bubble {
@@ -166,13 +183,50 @@ body {
   border-bottom-left-radius: 2px;
 }
 
+.bubble-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  width: 100%;
+  margin: 3px 2px 1px 0;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.copy-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.copy-btn:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: 1px;
+}
+
+.copy-btn.copied {
+  color: var(--accent);
+}
+
 .bubble.error {
   border-color: var(--err-border);
   background: var(--err-bg);
   color: var(--err-text);
 }
-
-/* Typing indicator */
 
 .typing-indicator {
   display: flex;
@@ -214,8 +268,6 @@ body {
     opacity: 1;
   }
 }
-
-/* Composer */
 
 .input-area {
   display: flex;
@@ -280,4 +332,113 @@ body {
 #send-btn svg {
   width: 15px;
   height: 15px;
+}
+
+.history-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.history-panel[hidden] {
+  display: none;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 9px 13px 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.history-title {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.history-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.history-empty {
+  margin: auto;
+  color: var(--muted);
+  font-size: 11.5px;
+  text-align: center;
+}
+
+.history-empty[hidden] {
+  display: none;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.history-item-main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.history-item-title {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-item-date {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+.history-item-delete {
+  flex-shrink: 0;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.history-item-delete:hover {
+  color: var(--err-text);
+  border-color: var(--err-border);
+  background: var(--err-bg);
 }

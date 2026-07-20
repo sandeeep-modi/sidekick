@@ -18,13 +18,15 @@
     <div class="titlebar">
       <span class="dot"></span>
       <span class="titlebar-text">Quick Chat</span>
+      <button class="titlebar-btn" id="history-btn" type="button" title="Saved chats">Saved</button>
+      <button class="titlebar-btn" id="new-btn" type="button" title="New chat">New</button>
       <button class="titlebar-close" id="close-btn" type="button" title="End session">✕</button>
     </div>
 
     <div class="disclaimer">
       <span class="disclaimer-icon">🔒</span>
       <span>
-        No history stored · fresh session each open · AI can make mistakes · using
+        Not saved unless you save it · AI can make mistakes · using
         <span class="model-badge" id="model-name">—</span>
       </span>
     </div>
@@ -64,16 +66,25 @@
     <div class="confirm-overlay" id="confirm-overlay" hidden>
       <div class="confirm-dialog">
         <div class="confirm-icon">💬</div>
-        <h2 class="confirm-title">End this session?</h2>
-        <p class="confirm-desc">All messages will be lost. Chat history is never saved.</p>
-        <label class="confirm-check-row">
-          <input type="checkbox" id="dont-show-again" />
-          <span>Don't show this again</span>
-        </label>
+        <h2 class="confirm-title">Save this chat?</h2>
+        <p class="confirm-desc">
+          Save it to revisit later with its full context, or discard it and start fresh.
+        </p>
         <div class="confirm-actions">
           <button id="confirm-cancel" type="button">Cancel</button>
-          <button id="confirm-end" type="button">End session</button>
+          <button id="confirm-discard" type="button">Don't save</button>
+          <button id="confirm-save" type="button">Save chat</button>
         </div>
+      </div>
+    </div>
+
+    <div class="history-panel" id="history-panel" hidden>
+      <div class="history-header">
+        <span class="history-title">Saved chats</span>
+        <button class="titlebar-close" id="history-close" type="button" title="Close">✕</button>
+      </div>
+      <div class="history-list" id="history-list">
+        <div class="history-empty" id="history-empty">No saved chats yet.</div>
       </div>
     </div>
 

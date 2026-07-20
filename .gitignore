@@ -29,3 +29,6 @@ desktop.ini
 *.swp
 
 .agent/
+
+# Personal design notes, not for publication
+context.md

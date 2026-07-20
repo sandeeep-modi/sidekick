@@ -1,6 +1,3 @@
-// The Quick Chat popup: frameless, always-on-top, draggable and resizable.
-// Remembers position and size. Every open starts a fresh session.
-
 const path = require("path");
 const { app, BrowserWindow, screen } = require("electron");
 const { appIcon } = require("../icons");
@@ -15,7 +12,6 @@ const PERSIST_DEBOUNCE_MS = 600;
 let win = null;
 let saveTimer = null;
 
-// Bottom-right of the primary display, inset a little.
 function defaultPosition(width, height) {
   const area = screen.getPrimaryDisplay().workArea;
   return {
@@ -24,8 +20,6 @@ function defaultPosition(width, height) {
   };
 }
 
-// Is enough of this rectangle on a connected display to grab? Guards against restoring
-// onto an unplugged monitor — the frameless, taskbar-less window would be unreachable.
 function isReachable(x, y, width, height) {
   const MIN_VISIBLE = 80;
   return screen.getAllDisplays().some(({ workArea: a }) => {
@@ -91,10 +85,9 @@ function createChatWindow() {
   win.on("move", debouncedPersist);
   win.on("resize", debouncedPersist);
 
-  // Hide instead of close, but let it through when quitting or this would veto app.quit().
   win.on("close", (e) => {
     persistBounds();
-    if (app.isQuitting) return;
+    if (app.isQuitting) return; // let close through when quitting, else this vetoes app.quit()
     e.preventDefault();
     win.hide();
   });
@@ -102,7 +95,6 @@ function createChatWindow() {
   return win;
 }
 
-/** Toggle shortcut: show or hide, no confirmation either way. */
 function toggleChatWindow() {
   const w = createChatWindow();
 
@@ -111,9 +103,8 @@ function toggleChatWindow() {
     return;
   }
 
-  // Push current settings on every open, so Settings changes apply without a restart.
-  const { model, chatCloseWarning } = store.all();
-  w.webContents.send("chat:reset", { model, closeWarning: chatCloseWarning });
+  const { chatModel } = store.all();
+  w.webContents.send("chat:refresh", { model: chatModel });
   w.show();
   w.focus();
 }
@@ -124,7 +115,6 @@ function hideChatWindow() {
   win.hide();
 }
 
-/** End-session shortcut: the renderer decides whether to confirm first. */
 function requestCloseChatWindow() {
   if (win?.isVisible()) win.webContents.send("chat:close-requested");
 }

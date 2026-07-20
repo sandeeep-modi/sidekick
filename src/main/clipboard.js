@@ -1,16 +1,12 @@
-// Simulates OS-level Copy/Paste with built-in tools (no native deps): Windows
-// PowerShell SendKeys, macOS osascript (needs Accessibility), Linux xdotool.
-
 const { execFile } = require("child_process");
 
-// execFile (not exec) means no shell, so args can't become shell injection.
+// execFile (not exec): no shell, so args can't become shell injection.
 function run(command, args) {
   return new Promise((resolve, reject) => {
     execFile(command, args, { windowsHide: true }, (err) => (err ? reject(err) : resolve()));
   });
 }
 
-/** Send Ctrl/Cmd + <letter> to whichever app currently has focus. */
 function sendHotkey(letter) {
   if (!/^[a-z]$/.test(letter)) throw new Error(`Invalid hotkey: ${letter}`);
 

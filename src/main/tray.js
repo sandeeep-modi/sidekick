@@ -3,8 +3,6 @@ const { trayIcon } = require("./icons");
 
 let tray = null;
 
-// No "Rewrite now" item: clicking the tray steals focus, so there'd be no selection
-// to copy. Rewrite is only ever driven by the global shortcut.
 function createTray({ onOpen, onChat, onQuit }) {
   tray = new Tray(trayIcon());
   tray.setToolTip("Sidekick");

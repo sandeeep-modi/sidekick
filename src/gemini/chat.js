@@ -1,29 +1,23 @@
 const { generate } = require("./client");
+const { NO_EM_DASH } = require("./style");
 
-// Flash Lite has no system role, so standing context is injected as a synthetic opening exchange.
 function contextTurns(context) {
-  if (!context?.trim()) return [];
+  const parts = [NO_EM_DASH];
+  if (context?.trim()) parts.push(context.trim());
+
   return [
     {
       role: "user",
       parts: [
         {
-          text: `[Background context — keep this in mind for the whole conversation]\n${context.trim()}`,
+          text: `[Background context - keep this in mind for the whole conversation]\n${parts.join("\n\n")}`,
         },
       ],
     },
-    { role: "model", parts: [{ text: "Got it, I'll keep that context in mind." }] },
+    { role: "model", parts: [{ text: "Got it, I'll keep that in mind." }] },
   ];
 }
 
-/**
- * Send one chat turn, with the prior turns for context.
- * @param {object} params
- * @param {Array<{role: "user"|"model", text: string}>} params.history  Turns before this one.
- * @param {string} params.userText  The new user message.
- * @param {string} [params.context] Standing instruction from Settings.
- * @returns {Promise<string>} The model's reply.
- */
 function chatMessage({ history, userText, context, apiKey, model }) {
   const contents = [
     ...contextTurns(context),

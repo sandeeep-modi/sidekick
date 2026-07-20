@@ -1,5 +1,3 @@
-/* End-session confirmation */
-
 .confirm-overlay {
   position: fixed;
   inset: 0;
@@ -19,7 +17,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 270px;
+  width: 280px;
+  max-width: calc(100vw - 24px);
   padding: 20px 18px 16px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -68,30 +67,33 @@
 
 .confirm-actions button {
   flex: 1;
-  padding: 8px;
+  padding: 8px 4px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font: inherit;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 }
 
-#confirm-cancel {
+#confirm-cancel,
+#confirm-discard {
   background: var(--surface-2);
   color: var(--text);
 }
 
-#confirm-cancel:hover {
+#confirm-cancel:hover,
+#confirm-discard:hover {
   background: var(--border);
 }
 
-#confirm-end {
-  border-color: var(--err-border);
-  background: var(--err-bg);
-  color: var(--err-text);
+#confirm-save {
+  border-color: var(--accent-border);
+  background: var(--accent);
+  color: #fff;
 }
 
-#confirm-end:hover {
-  background: #fee2e2;
+#confirm-save:hover {
+  background: var(--accent-dim);
 }

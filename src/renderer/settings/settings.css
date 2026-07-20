@@ -30,13 +30,41 @@ h1 {
   margin: 0 0 13px 23px;
 }
 
-.section-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.tab {
+  flex: 1;
+  padding: 7px 8px;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
   color: var(--muted);
-  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.tab:hover {
+  background: var(--surface-2);
+}
+
+.tab.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.panel:not([hidden]) {
+  animation: screen-in 0.2s ease both;
 }
 
 .group {
@@ -231,4 +259,103 @@ button.accent:hover {
 
 .errbox.visible {
   display: block;
+}
+
+.welcome-tag {
+  margin: 6px 0 16px 23px;
+  line-height: 1.5;
+}
+
+.no-key-hint {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+#getKey {
+  width: 100%;
+}
+
+button.big {
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+#welcomeStatus {
+  min-height: 18px;
+  margin-top: 11px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#welcomeStatus.ok {
+  color: var(--accent);
+}
+
+#welcomeStatus.err {
+  color: #d29393;
+}
+
+#welcome:not([hidden]),
+#main:not([hidden]) {
+  animation: screen-in 0.28s ease both;
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+button.accent,
+#getKey {
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease;
+}
+
+button.accent:hover,
+#getKey:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+button.accent:active,
+#getKey:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.dot {
+  animation: dot-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--accent-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #welcome:not([hidden]),
+  #main:not([hidden]),
+  .dot {
+    animation: none;
+  }
+  button.accent:hover,
+  #getKey:hover {
+    transform: none;
+    box-shadow: none;
+  }
 }

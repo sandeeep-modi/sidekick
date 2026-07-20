@@ -5,7 +5,8 @@ const $ = (id) => document.getElementById(id);
 const els = {
   key: $("key"),
   toggleKey: $("toggle"),
-  model: $("model"),
+  rewriteModel: $("rewriteModel"),
+  chatModel: $("chatModel"),
   tones: $("tones"),
   autoLaunch: $("autolaunch"),
   chatContext: $("chatContext"),
@@ -14,16 +15,22 @@ const els = {
   errbox: $("errbox"),
   save: $("save"),
   test: $("test"),
+  welcome: $("welcome"),
+  main: $("main"),
+  welcomeKey: $("welcomeKey"),
+  welcomeToggle: $("welcomeToggle"),
+  getKey: $("getKey"),
+  continue: $("continue"),
+  welcomeStatus: $("welcomeStatus"),
+  welcomeErrbox: $("welcomeErrbox"),
 };
 
-// Labels for the shortcut rows, for messages about them.
 const SHORTCUT_LABELS = {
   shortcut: "Rewrite shortcut",
   chatShortcut: "Chat shortcut",
   chatCloseShortcut: "End-session shortcut",
 };
 
-// One entry per recordable shortcut: the setting it maps to, and its three elements.
 const RECORDERS = [
   { id: "shortcut", box: "shortcutBox", text: "shortcutText", button: "recordShortcut" },
   {
@@ -42,25 +49,26 @@ const RECORDERS = [
 
 let tones = [];
 let selectedTone = "professional";
-const accelerators = {}; // setting id -> accelerator
-let recordingId = null; // which shortcut is currently listening, if any
+const accelerators = {};
+let recordingId = null;
 
-// ---- Status line -------------------------------------------------------------
+let statusEls = { status: () => els.status, errbox: () => els.errbox };
 
 function setStatus(text, kind = "") {
-  els.status.textContent = text;
-  els.status.className = kind;
-  els.errbox.classList.remove("visible");
+  const status = statusEls.status();
+  status.textContent = text;
+  status.className = kind;
+  statusEls.errbox().classList.remove("visible");
 }
 
 function setError(summary, detail = "") {
-  els.status.textContent = summary;
-  els.status.className = "err";
-  els.errbox.textContent = detail;
-  els.errbox.classList.toggle("visible", Boolean(detail));
+  const status = statusEls.status();
+  status.textContent = summary;
+  status.className = "err";
+  const errbox = statusEls.errbox();
+  errbox.textContent = detail;
+  errbox.classList.toggle("visible", Boolean(detail));
 }
-
-// ---- Tones -------------------------------------------------------------------
 
 function renderTones() {
   els.tones.replaceChildren(
@@ -86,8 +94,6 @@ function renderTones() {
   );
 }
 
-// ---- Shortcut recording ------------------------------------------------------
-
 function paintShortcuts() {
   for (const recorder of RECORDERS) {
     $(recorder.box).classList.remove("recording");
@@ -103,14 +109,12 @@ function stopRecording() {
   }
   recordingId = null;
   paintShortcuts();
-  window.api.resumeShortcuts(); // restore the live global shortcuts
+  window.api.resumeShortcuts();
 }
 
 async function startRecording(id) {
   stopRecording();
   recordingId = id;
-
-  // Mute the live global shortcuts so pressing one records it instead of firing it.
   await window.api.suspendShortcuts();
 
   const recorder = RECORDERS.find((r) => r.id === id);
@@ -124,7 +128,7 @@ function onRecordingKeydown(event) {
   event.preventDefault();
 
   const result = acceleratorFromEvent(event);
-  if (!result) return; // still holding modifiers
+  if (!result) return;
 
   const id = recordingId;
 
@@ -134,7 +138,6 @@ function onRecordingKeydown(event) {
     return;
   }
 
-  // Reject a combo already bound to another action, or only one of them would work.
   const clash = RECORDERS.find((r) => r.id !== id && accelerators[r.id] === result.accelerator);
   if (clash) {
     stopRecording();
@@ -147,12 +150,9 @@ function onRecordingKeydown(event) {
   setStatus("Shortcut set — click Save to apply.", "ok");
 }
 
-// ---- Load / save -------------------------------------------------------------
-
-let ready = false; // true once load() has populated the form
+let ready = false;
 
 async function load() {
-  // Keep the buttons disabled until every field is populated — a half-loaded save would blank them.
   els.save.disabled = true;
   els.test.disabled = true;
 
@@ -162,39 +162,52 @@ async function load() {
   selectedTone = settings.tone;
   renderTones();
 
-  els.model.replaceChildren(
-    ...models.map((model) => {
-      const option = document.createElement("option");
-      option.value = model.id;
-      option.textContent = model.label;
-      return option;
-    })
-  );
-  // Fall back to the first model if the saved one is no longer offered, not a blank select.
-  els.model.value = models.some((m) => m.id === settings.model) ? settings.model : models[0]?.id;
+  const fillModelSelect = (select, saved) => {
+    select.replaceChildren(
+      ...models.map((model) => {
+        const option = document.createElement("option");
+        option.value = model.id;
+        option.textContent = model.label;
+        return option;
+      })
+    );
+    select.value = models.some((m) => m.id === saved) ? saved : models[0]?.id;
+  };
+  fillModelSelect(els.rewriteModel, settings.rewriteModel);
+  fillModelSelect(els.chatModel, settings.chatModel);
 
   els.autoLaunch.checked = settings.autoLaunch;
   els.chatContext.value = settings.chatContext;
-  // The chat's "don't show this again" box clears this; here is the way back.
   els.chatCloseWarning.checked = settings.chatCloseWarning;
 
   for (const recorder of RECORDERS) accelerators[recorder.id] = settings[recorder.id];
   paintShortcuts();
 
-  // The key comes down its own channel — it is not part of the settings payload.
   els.key.value = await window.api.getApiKey();
 
   ready = true;
   els.save.disabled = false;
   els.test.disabled = false;
+
+  showScreen(els.key.value.trim() ? "main" : "welcome");
+}
+
+function showScreen(name) {
+  const welcome = name === "welcome";
+  els.welcome.hidden = !welcome;
+  els.main.hidden = welcome;
+  statusEls = welcome
+    ? { status: () => els.welcomeStatus, errbox: () => els.welcomeErrbox }
+    : { status: () => els.status, errbox: () => els.errbox };
 }
 
 async function save() {
   if (!ready) return;
 
-  const { saved, shortcuts } = await window.api.save({
+  const { saved, shortcuts, autoLaunchApplied } = await window.api.save({
     apiKey: els.key.value.trim(),
-    model: els.model.value,
+    rewriteModel: els.rewriteModel.value,
+    chatModel: els.chatModel.value,
     tone: selectedTone,
     autoLaunch: els.autoLaunch.checked,
     chatContext: els.chatContext.value.trim(),
@@ -209,7 +222,6 @@ async function save() {
     return;
   }
 
-  // Flag any shortcut the OS refused (e.g. another app already owns it).
   const rejected = Object.entries(shortcuts || {})
     .filter(([, ok]) => !ok)
     .map(([id]) => SHORTCUT_LABELS[id]);
@@ -217,6 +229,14 @@ async function save() {
     setError(
       "Saved, but a shortcut was rejected",
       `${rejected.join(", ")} — try another combination.`
+    );
+    return;
+  }
+
+  if (autoLaunchApplied === false) {
+    setError(
+      "Saved, but start at login couldn't be enabled",
+      "Move Sidekick to your Applications folder (macOS) or a permanent location (Windows), then try again."
     );
     return;
   }
@@ -232,19 +252,55 @@ async function testKey() {
   }
 
   await save();
-  setStatus(`Testing ${els.model.value}…`);
+  setStatus(`Testing ${els.rewriteModel.value}…`);
 
   const result = await window.api.testKey();
   if (result.ok) setStatus("Key works! ✓", "ok");
   else setError("Test failed", result.error);
 }
 
-// ---- Wiring ------------------------------------------------------------------
+async function onContinue() {
+  if (!ready) return;
+
+  const key = els.welcomeKey.value.trim();
+  if (!key) {
+    setError("Paste your API key to continue.");
+    return;
+  }
+
+  els.continue.disabled = true;
+  els.key.value = key; // shared save() reads from the main field
+  setStatus("Checking your key…");
+
+  await save();
+  const result = await window.api.testKey();
+
+  if (result.ok) {
+    setStatus("");
+    showScreen("main");
+    setStatus("You're all set! ✓", "ok");
+  } else {
+    setError("That key didn't work", result.error);
+  }
+  els.continue.disabled = false;
+}
 
 els.toggleKey.addEventListener("click", () => {
   const revealing = els.key.type === "password";
   els.key.type = revealing ? "text" : "password";
   els.toggleKey.textContent = revealing ? "Hide" : "Show";
+});
+
+els.welcomeToggle.addEventListener("click", () => {
+  const revealing = els.welcomeKey.type === "password";
+  els.welcomeKey.type = revealing ? "text" : "password";
+  els.welcomeToggle.textContent = revealing ? "Hide" : "Show";
+});
+
+els.getKey.addEventListener("click", () => window.api.openKeyPage());
+els.continue.addEventListener("click", onContinue);
+els.welcomeKey.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") onContinue();
 });
 
 for (const recorder of RECORDERS) {
@@ -255,10 +311,23 @@ for (const recorder of RECORDERS) {
 }
 
 window.addEventListener("keydown", onRecordingKeydown);
-// Stop on blur, or the global shortcuts would stay suspended (dead) until the user returns.
 window.addEventListener("blur", () => {
   if (recordingId) stopRecording();
 });
+function showTab(name) {
+  if (recordingId) stopRecording();
+  for (const tab of document.querySelectorAll(".tab")) {
+    tab.classList.toggle("active", tab.dataset.tab === name);
+  }
+  for (const panel of document.querySelectorAll(".panel")) {
+    panel.hidden = panel.dataset.panel !== name;
+  }
+}
+
+for (const tab of document.querySelectorAll(".tab")) {
+  tab.addEventListener("click", () => showTab(tab.dataset.tab));
+}
+
 els.save.addEventListener("click", save);
 els.test.addEventListener("click", testKey);
 $("quit").addEventListener("click", () => window.api.quit());

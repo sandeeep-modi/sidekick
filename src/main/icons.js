@@ -1,5 +1,3 @@
-// Tray and window icons, loaded from the master PNGs in icons/ (same source as the installer icons).
-
 const path = require("path");
 const { nativeImage } = require("electron");
 

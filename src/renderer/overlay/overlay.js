@@ -1,5 +1,3 @@
-// The spinner pill. Main drives it over "overlay:state"; it never talks back.
-
 const icon = document.getElementById("icon");
 const label = document.getElementById("label");
 
