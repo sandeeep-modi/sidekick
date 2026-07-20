@@ -2,7 +2,7 @@ html,
 body {
   margin: 0;
   overflow: hidden;
-  background: transparent; /* the window itself is transparent — only the pill shows */
+  background: transparent;
   cursor: default;
   user-select: none;
   font:

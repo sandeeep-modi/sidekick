@@ -1,7 +1,7 @@
 {
   "name": "sidekick",
   "productName": "Sidekick",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Rewrite selected text and chat with AI in any app, with a keystroke.",
   "main": "src/main/index.js",
   "author": "Sandeep",
@@ -9,6 +9,7 @@
   "private": true,
   "scripts": {
     "start": "electron .",
+    "dev": "electronmon .",
     "icons": "node scripts/pack-icons.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -23,6 +24,7 @@
   "devDependencies": {
     "electron": "^43.0.0",
     "electron-builder": "^26.0.0",
+    "electronmon": "^2.0.4",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.0.0",
@@ -42,7 +44,10 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": "dmg",
-      "icon": "build/icon.icns"
+      "icon": "build/icon.icns",
+      "extendInfo": {
+        "LSUIElement": true
+      }
     },
     "win": {
       "target": "nsis",

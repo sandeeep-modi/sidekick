@@ -1,5 +1,3 @@
-// The settings window. Closing it hides the app; it keeps running in the tray.
-
 const path = require("path");
 const { app, BrowserWindow } = require("electron");
 const { appIcon } = require("../icons");
@@ -12,11 +10,11 @@ function createSettingsWindow() {
   win = new BrowserWindow({
     width: 440,
     height: 620,
-    useContentSize: true, // height is the page area, so the UI never clips
+    useContentSize: true,
     resizable: false,
     maximizable: false,
     fullscreenable: false,
-    show: false, // shown explicitly, so starting at login never flashes the window
+    show: false,
     title: "Sidekick",
     icon: appIcon(),
     webPreferences: {
@@ -30,9 +28,8 @@ function createSettingsWindow() {
   win.setMenuBarVisibility(false);
   win.loadFile(path.join(__dirname, "..", "..", "renderer", "settings", "index.html"));
 
-  // Hide instead of close, but let it through when quitting or this would veto app.quit().
   win.on("close", (e) => {
-    if (app.isQuitting) return;
+    if (app.isQuitting) return; // let close through when quitting, else this vetoes app.quit()
     e.preventDefault();
     win.hide();
   });

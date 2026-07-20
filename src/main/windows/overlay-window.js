@@ -1,6 +1,3 @@
-// The floating "Rewriting…" spinner. It must never take focus, or the paste
-// would land in this window instead of the user's app.
-
 const path = require("path");
 const { BrowserWindow, screen } = require("electron");
 
@@ -23,7 +20,7 @@ function createOverlayWindow() {
     maximizable: false,
     fullscreenable: false,
     skipTaskbar: true,
-    focusable: false, // with showInactive(), this is what keeps focus in the user's app
+    focusable: false, // must stay false: keeps focus in the user's app so paste lands there
     hasShadow: false,
     show: false,
     webPreferences: {
@@ -41,7 +38,6 @@ function createOverlayWindow() {
   return win;
 }
 
-/** Park the spinner just below-right of the cursor, clamped to the display. */
 function positionAtCursor() {
   const point = screen.getCursorScreenPoint();
   const area = screen.getDisplayNearestPoint(point).workArea;
@@ -51,7 +47,6 @@ function positionAtCursor() {
   createOverlayWindow().setBounds({ x: Math.round(x), y: Math.round(y), width: W, height: H });
 }
 
-/** @param {"loading"|"done"|"error"} state */
 function setOverlayState(state, text = "") {
   createOverlayWindow().webContents.send("overlay:state", { state, text });
 }

@@ -1,5 +1,3 @@
-/* Design tokens and reset, shared by every renderer window. */
-
 :root {
   --bg: #fafafb;
   --surface: #ffffff;
@@ -10,7 +8,7 @@
   --muted: #8b8c96;
 
   --brand: #72f69b; /* icon green — decorative only, too light for text */
-  --accent: #14a05a; /* readable green for actions and links */
+  --accent: #14a05a;
   --accent-dim: #0d7a45;
   --accent-soft: #e9f9f0;
   --accent-border: #c7ecd5;

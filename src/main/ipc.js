@@ -1,13 +1,11 @@
-// Every ipcMain handler, grouped by window. Sensitive channels verify the sender so
-// a compromised chat window can't invoke a settings channel and reach the API key.
-
-const { app, ipcMain } = require("electron");
+const { app, ipcMain, shell } = require("electron");
 const store = require("./store");
+const chats = require("./chats");
 const { registerShortcut, unregisterAllShortcuts } = require("./shortcuts");
 const { doRewrite } = require("./rewriter");
 const { rewriteText } = require("../gemini/rewrite");
 const { chatMessage } = require("../gemini/chat");
-const { MODELS } = require("../gemini/models");
+const { resolveModels } = require("../gemini/models");
 const { TONES } = require("../gemini/tones");
 const { getSettingsWindow } = require("./windows/settings-window");
 const {
@@ -17,18 +15,13 @@ const {
   requestCloseChatWindow,
 } = require("./windows/chat-window");
 
-/** Throw unless the call really came from `win` — ipcMain rejects the invoke on throw. */
 function assertSender(event, win, channel) {
+  // Security: reject the invoke unless it came from the expected window.
   if (!win || event.sender !== win.webContents) {
     throw new Error(`Refused ${channel} from an unexpected window.`);
   }
 }
 
-/**
- * (Re)bind every global shortcut to the current settings.
- * @returns {{rewrite: boolean, chatShortcut: boolean, chatCloseShortcut: boolean}}
- *   which ones the OS accepted, so the settings UI can flag any it refused.
- */
 function applyShortcuts(settings) {
   return {
     rewrite: registerShortcut("rewrite", settings.shortcut, doRewrite),
@@ -41,17 +34,22 @@ function applyShortcuts(settings) {
   };
 }
 
-function registerIpc() {
-  // ---- Settings window ------------------------------------------------------
+let modelCache = { key: null, models: null };
 
-  ipcMain.handle("settings:get", () => ({
-    settings: store.publicSettings(), // no apiKey in here — see store.publicSettings()
-    models: MODELS,
+async function modelsForKey(apiKey) {
+  if (modelCache.models && modelCache.key === apiKey) return modelCache.models;
+  const models = await resolveModels(apiKey);
+  modelCache = { key: apiKey, models };
+  return models;
+}
+
+function registerIpc() {
+  ipcMain.handle("settings:get", async () => ({
+    settings: store.publicSettings(),
+    models: await modelsForKey(store.all().apiKey),
     tones: TONES,
   }));
 
-  // The only channel that hands out the key, and only to the settings window,
-  // which needs it to populate its input.
   ipcMain.handle("settings:getApiKey", (event) => {
     assertSender(event, getSettingsWindow(), "settings:getApiKey");
     return store.all().apiKey;
@@ -63,18 +61,22 @@ function registerIpc() {
     const saved = store.set(patch);
     const settings = store.all();
 
+    if ("apiKey" in patch) modelCache = { key: null, models: null };
+
     let shortcuts = null;
     if ("shortcut" in patch || "chatShortcut" in patch || "chatCloseShortcut" in patch) {
       shortcuts = applyShortcuts(settings);
     }
+
+    let autoLaunchApplied = null;
     if ("autoLaunch" in patch) {
       app.setLoginItemSettings({ openAtLogin: settings.autoLaunch, args: ["--hidden"] });
+      autoLaunchApplied = app.getLoginItemSettings().openAtLogin === settings.autoLaunch;
     }
 
-    return { settings: store.publicSettings(), saved, shortcuts };
+    return { settings: store.publicSettings(), saved, shortcuts, autoLaunchApplied };
   });
 
-  // Muted while the recorder listens, so pressing a combo records it instead of firing it.
   ipcMain.handle("shortcuts:suspend", (event) => {
     assertSender(event, getSettingsWindow(), "shortcuts:suspend");
     unregisterAllShortcuts();
@@ -88,13 +90,20 @@ function registerIpc() {
   ipcMain.handle("settings:testKey", async (event) => {
     assertSender(event, getSettingsWindow(), "settings:testKey");
 
-    const { apiKey, tone, model } = store.all();
+    const { apiKey, tone, rewriteModel } = store.all();
     try {
-      await rewriteText("hello there, quick test", tone, apiKey, model);
+      await rewriteText("hello there, quick test", tone, apiKey, rewriteModel);
       return { ok: true };
     } catch (error) {
       return { ok: false, error: String(error?.message || error) };
     }
+  });
+
+  ipcMain.handle("app:openExternal", (event, url) => {
+    assertSender(event, getSettingsWindow(), "app:openExternal");
+    // Security: allowlist only, so this can't become an arbitrary-URL opener.
+    const ALLOWED = new Set(["https://aistudio.google.com/apikey"]);
+    if (ALLOWED.has(url)) shell.openExternal(url);
   });
 
   ipcMain.handle("app:quit", (event) => {
@@ -103,25 +112,26 @@ function registerIpc() {
     app.quit();
   });
 
-  // ---- Chat window ----------------------------------------------------------
-  // Nothing here can read the API key — only reply text crosses back to the renderer.
-
   ipcMain.handle("chat:init", (event) => {
     assertSender(event, getChatWindow(), "chat:init");
-    const { model, chatCloseWarning } = store.all();
-    return { model, closeWarning: chatCloseWarning };
+    const { chatModel, chatCloseWarning } = store.all();
+    return { model: chatModel, closeWarning: chatCloseWarning };
   });
 
   ipcMain.handle("chat:send", async (event, { history, userText }) => {
-    // Never returns the key, but gate it anyway so only the chat window can spend
-    // the user's quota with arbitrary prompts.
     assertSender(event, getChatWindow(), "chat:send");
 
-    const { apiKey, model, chatContext } = store.all();
+    const { apiKey, chatModel, chatContext } = store.all();
     if (!apiKey) return { error: "NO_KEY" };
 
     try {
-      const reply = await chatMessage({ history, userText, context: chatContext, apiKey, model });
+      const reply = await chatMessage({
+        history,
+        userText,
+        context: chatContext,
+        apiKey,
+        model: chatModel,
+      });
       return { reply };
     } catch (error) {
       return { error: String(error?.message || error) };
@@ -130,11 +140,29 @@ function registerIpc() {
 
   ipcMain.handle("chat:hide", () => hideChatWindow());
 
-  // Backs the chat's "don't show this again" box. Deliberately narrower than
-  // settings:set — the chat window can flip this one flag and nothing else.
   ipcMain.handle("chat:setCloseWarning", (event, enabled) => {
     assertSender(event, getChatWindow(), "chat:setCloseWarning");
     store.set({ chatCloseWarning: Boolean(enabled) });
+  });
+
+  ipcMain.handle("chat:save", (event, history) => {
+    assertSender(event, getChatWindow(), "chat:save");
+    return chats.save(history);
+  });
+
+  ipcMain.handle("chat:list", (event) => {
+    assertSender(event, getChatWindow(), "chat:list");
+    return chats.list();
+  });
+
+  ipcMain.handle("chat:load", (event, id) => {
+    assertSender(event, getChatWindow(), "chat:load");
+    return chats.load(id);
+  });
+
+  ipcMain.handle("chat:delete", (event, id) => {
+    assertSender(event, getChatWindow(), "chat:delete");
+    return chats.remove(id);
   });
 }
 
