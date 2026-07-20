@@ -8,6 +8,31 @@ API key. No account, no server: everything runs locally.
 - **Rewrite** — select text anywhere, press `Ctrl/Cmd+Shift+R`, and it's rewritten in place.
 - **Quick Chat** — press `Ctrl/Cmd+Shift+C` for a floating chat popup. Nothing is ever saved to disk.
 
+## Download
+
+Grab the latest installer from the
+[**Releases**](https://github.com/sandeeep-modi/sidekick/releases/latest) page.
+
+### macOS (Apple Silicon)
+
+1. Download the **`.dmg`**, open it, and drag **Sidekick** into **Applications**.
+2. The app is unsigned, so the first launch is blocked. Clear it once in **Terminal**:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Sidekick.app
+   ```
+   Then open Sidekick normally.
+3. On the first rewrite, grant **Accessibility** permission when macOS asks
+   (**System Settings → Privacy & Security → Accessibility**) — it's needed to
+   simulate Copy/Paste.
+
+### Windows
+
+1. Download the **`.exe`** installer and run it.
+2. It's unsigned, so SmartScreen may warn: click **More info → Run anyway**.
+
+Paste a [free Gemini API key](https://aistudio.google.com/apikey), hit **Save**,
+then **Test key**, and you're set.
+
 ## Run it
 
 Requires Node.js 18+.
@@ -53,7 +78,6 @@ scripts/        pack-icons.js — packs icons/*.png into build/icon.ico + .icns
 ```
 
 `npm run lint` and `npm run format` keep it tidy.
-[context.md](context.md) is the full project reference.
 
 ## Security
 
