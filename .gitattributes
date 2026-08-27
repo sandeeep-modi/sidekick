@@ -1,0 +1,11 @@
+# One canonical line ending (LF) for every text file, on every machine.
+# Without this, editors on Windows reintroduce CRLF and whole files show up as
+# changed when nothing in them actually changed.
+* text=auto eol=lf
+
+# Binary: never touch these.
+*.png binary
+*.ico binary
+*.icns binary
+*.exe binary
+*.dmg binary

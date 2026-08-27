@@ -5,7 +5,8 @@ const { registerShortcut, unregisterAllShortcuts } = require("./shortcuts");
 const { doRewrite } = require("./rewriter");
 const { rewriteText } = require("../gemini/rewrite");
 const { chatMessage } = require("../gemini/chat");
-const { resolveModels } = require("../gemini/models");
+const models = require("./model-cache");
+const autoLaunch = require("./auto-launch");
 const { TONES } = require("../gemini/tones");
 const { getSettingsWindow } = require("./windows/settings-window");
 const {
@@ -34,21 +35,31 @@ function applyShortcuts(settings) {
   };
 }
 
-let modelCache = { key: null, models: null };
+// A stored model that the key can no longer reach would only surface as a 404
+// mid-rewrite, so fall back to the recommended one as soon as we know.
+function reconcileStoredModels(list) {
+  if (!list?.length) return;
 
-async function modelsForKey(apiKey) {
-  if (modelCache.models && modelCache.key === apiKey) return modelCache.models;
-  const models = await resolveModels(apiKey);
-  modelCache = { key: apiKey, models };
-  return models;
+  const offered = new Set(list.map((m) => m.id));
+  const { chatModel, rewriteModel } = store.all();
+  const patch = {};
+  if (!offered.has(chatModel)) patch.chatModel = list[0].id;
+  if (!offered.has(rewriteModel)) patch.rewriteModel = list[0].id;
+  if (Object.keys(patch).length) store.set(patch);
 }
 
 function registerIpc() {
-  ipcMain.handle("settings:get", async () => ({
-    settings: store.publicSettings(),
-    models: await modelsForKey(store.all().apiKey),
-    tones: TONES,
-  }));
+  models.onUpdated((list) => {
+    reconcileStoredModels(list);
+    const win = getSettingsWindow();
+    if (win && !win.isDestroyed()) win.webContents.send("models:updated", list);
+  });
+
+  ipcMain.handle("settings:get", async () => {
+    const list = await models.get(store.all().apiKey);
+    reconcileStoredModels(list);
+    return { settings: store.publicSettings(), models: list, tones: TONES };
+  });
 
   ipcMain.handle("settings:getApiKey", (event) => {
     assertSender(event, getSettingsWindow(), "settings:getApiKey");
@@ -61,7 +72,7 @@ function registerIpc() {
     const saved = store.set(patch);
     const settings = store.all();
 
-    if ("apiKey" in patch) modelCache = { key: null, models: null };
+    if ("apiKey" in patch) models.refreshNow(settings.apiKey);
 
     let shortcuts = null;
     if ("shortcut" in patch || "chatShortcut" in patch || "chatCloseShortcut" in patch) {
@@ -69,10 +80,7 @@ function registerIpc() {
     }
 
     let autoLaunchApplied = null;
-    if ("autoLaunch" in patch) {
-      app.setLoginItemSettings({ openAtLogin: settings.autoLaunch, args: ["--hidden"] });
-      autoLaunchApplied = app.getLoginItemSettings().openAtLogin === settings.autoLaunch;
-    }
+    if ("autoLaunch" in patch) autoLaunchApplied = autoLaunch.apply(settings.autoLaunch);
 
     return { settings: store.publicSettings(), saved, shortcuts, autoLaunchApplied };
   });
@@ -139,11 +147,6 @@ function registerIpc() {
   });
 
   ipcMain.handle("chat:hide", () => hideChatWindow());
-
-  ipcMain.handle("chat:setCloseWarning", (event, enabled) => {
-    assertSender(event, getChatWindow(), "chat:setCloseWarning");
-    store.set({ chatCloseWarning: Boolean(enabled) });
-  });
 
   ipcMain.handle("chat:save", (event, history) => {
     assertSender(event, getChatWindow(), "chat:save");

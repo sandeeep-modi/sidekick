@@ -103,8 +103,8 @@ function toggleChatWindow() {
     return;
   }
 
-  const { chatModel } = store.all();
-  w.webContents.send("chat:refresh", { model: chatModel });
+  const { chatModel, chatCloseWarning } = store.all();
+  w.webContents.send("chat:refresh", { model: chatModel, closeWarning: chatCloseWarning });
   w.show();
   w.focus();
 }

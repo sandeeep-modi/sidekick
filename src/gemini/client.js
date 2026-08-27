@@ -17,7 +17,9 @@ async function errorFor(res) {
   let detail = "";
   try {
     detail = (await res.json())?.error?.message || "";
-  } catch {}
+  } catch {
+    // no JSON body: fall through to the status-only message
+  }
 
   if (res.status === 400 && /API key/i.test(detail)) {
     return new Error("Invalid API key. Check it in Settings.");

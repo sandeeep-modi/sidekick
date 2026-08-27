@@ -237,6 +237,16 @@ button.accent:hover {
   font-weight: 600;
 }
 
+#status,
+#welcomeStatus {
+  transition: opacity 0.4s ease;
+}
+
+#status.fading,
+#welcomeStatus.fading {
+  opacity: 0;
+}
+
 #status.ok {
   color: var(--accent);
 }

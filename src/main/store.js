@@ -35,12 +35,14 @@ function toDisk(mem) {
   const out = { ...mem };
   const key = out.apiKey || "";
   delete out.apiKey;
+  if (!key) return out;
 
-  if (key && secret.available()) {
-    out.apiKeyEnc = secret.encrypt(key);
-  } else if (key) {
-    out.apiKey = key; // intentional: no OS keystore available, plaintext fallback
-  }
+  // Keep the key even if the keystore refuses: encrypt() returns "" on failure,
+  // and writing that back would wipe the key the user just entered.
+  const encrypted = secret.available() ? secret.encrypt(key) : "";
+  if (encrypted) out.apiKeyEnc = encrypted;
+  else out.apiKey = key; // intentional: no OS keystore available, plaintext fallback
+
   return out;
 }
 
@@ -111,4 +113,4 @@ function set(patch) {
   }
 }
 
-module.exports = { init, all, publicSettings, set, DEFAULTS };
+module.exports = { init, all, publicSettings, set };

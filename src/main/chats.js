@@ -1,13 +1,12 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 let dir = null;
 
-let counter = 0;
-function makeId() {
-  counter += 1;
-  return `${Date.now().toString(36)}-${counter.toString(36)}`;
-}
+// Random suffix, not a counter: a counter restarts at 0 with the app and can
+// reuse an id minted in the same millisecond of an earlier run.
+const makeId = () => `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`;
 
 function init(userDataPath) {
   dir = path.join(userDataPath, "chats");
@@ -31,10 +30,14 @@ function save(history) {
 
   const id = makeId();
   const record = { id, title: titleFrom(history), savedAt: Date.now(), history };
+  const file = fileFor(id);
 
-  const tmp = `${fileFor(id)}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(record, null, 2));
-  fs.renameSync(tmp, fileFor(id));
+  try {
+    fs.writeFileSync(`${file}.tmp`, JSON.stringify(record, null, 2));
+    fs.renameSync(`${file}.tmp`, file);
+  } catch {
+    return null;
+  }
 
   return { id: record.id, title: record.title, savedAt: record.savedAt };
 }
@@ -54,7 +57,9 @@ function list() {
       const raw = fs.readFileSync(path.join(dir, name), "utf8");
       const { id, title, savedAt } = JSON.parse(raw);
       if (id) items.push({ id, title, savedAt });
-    } catch {}
+    } catch {
+      // skip an unreadable or malformed chat file rather than losing the list
+    }
   }
   return items.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
 }

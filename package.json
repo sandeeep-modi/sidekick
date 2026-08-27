@@ -1,7 +1,7 @@
 {
   "name": "sidekick",
   "productName": "Sidekick",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Rewrite selected text and chat with AI in any app, with a keystroke.",
   "main": "src/main/index.js",
   "author": "Sandeep",
@@ -35,6 +35,7 @@
     "productName": "Sidekick",
     "files": [
       "src/**/*",
+      "!src/main/dev-reload.js",
       "icons/icon-16.png",
       "icons/icon-32.png",
       "icons/icon-64.png",

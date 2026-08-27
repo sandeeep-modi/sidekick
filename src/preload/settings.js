@@ -9,4 +9,6 @@ contextBridge.exposeInMainWorld("api", {
   openKeyPage: () => ipcRenderer.invoke("app:openExternal", "https://aistudio.google.com/apikey"),
   suspendShortcuts: () => ipcRenderer.invoke("shortcuts:suspend"),
   resumeShortcuts: () => ipcRenderer.invoke("shortcuts:resume"),
+  onModelsUpdated: (callback) =>
+    ipcRenderer.on("models:updated", (_event, models) => callback(models)),
 });

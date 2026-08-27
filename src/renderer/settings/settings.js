@@ -54,14 +54,43 @@ let recordingId = null;
 
 let statusEls = { status: () => els.status, errbox: () => els.errbox };
 
-function setStatus(text, kind = "") {
+const STATUS_HOLD_MS = 3500;
+const STATUS_FADE_MS = 400;
+let statusTimers = [];
+
+function clearStatusTimers() {
+  for (const timer of statusTimers) clearTimeout(timer);
+  statusTimers = [];
+}
+
+// Hold, fade, clear. The text check stops a stale timer wiping a newer message.
+function scheduleDismiss(el, text) {
+  statusTimers.push(
+    setTimeout(() => {
+      if (el.textContent !== text) return;
+      el.classList.add("fading");
+      statusTimers.push(
+        setTimeout(() => {
+          if (el.textContent !== text) return;
+          el.textContent = "";
+          el.className = "";
+        }, STATUS_FADE_MS)
+      );
+    }, STATUS_HOLD_MS)
+  );
+}
+
+function setStatus(text, kind = "", { sticky = false } = {}) {
+  clearStatusTimers();
   const status = statusEls.status();
   status.textContent = text;
   status.className = kind;
   statusEls.errbox().classList.remove("visible");
+  if (text && !sticky) scheduleDismiss(status, text);
 }
 
 function setError(summary, detail = "") {
+  clearStatusTimers(); // errors stay put until something replaces them
   const status = statusEls.status();
   status.textContent = summary;
   status.className = "err";
@@ -151,30 +180,38 @@ function onRecordingKeydown(event) {
 }
 
 let ready = false;
+let models = [];
+
+function fillModelSelect(select, preferred) {
+  select.replaceChildren(
+    ...models.map((model) => {
+      const option = document.createElement("option");
+      option.value = model.id;
+      option.textContent = model.label;
+      return option;
+    })
+  );
+  select.value = models.some((m) => m.id === preferred) ? preferred : models[0]?.id;
+}
+
+// Keeps whatever is picked when the weekly refresh lands while Settings is open.
+function renderModels(rewritePick = els.rewriteModel.value, chatPick = els.chatModel.value) {
+  fillModelSelect(els.rewriteModel, rewritePick);
+  fillModelSelect(els.chatModel, chatPick);
+}
 
 async function load() {
   els.save.disabled = true;
   els.test.disabled = true;
 
-  const { settings, models, tones: toneList } = await window.api.load();
+  const { settings, models: modelList, tones: toneList } = await window.api.load();
 
   tones = toneList;
   selectedTone = settings.tone;
   renderTones();
 
-  const fillModelSelect = (select, saved) => {
-    select.replaceChildren(
-      ...models.map((model) => {
-        const option = document.createElement("option");
-        option.value = model.id;
-        option.textContent = model.label;
-        return option;
-      })
-    );
-    select.value = models.some((m) => m.id === saved) ? saved : models[0]?.id;
-  };
-  fillModelSelect(els.rewriteModel, settings.rewriteModel);
-  fillModelSelect(els.chatModel, settings.chatModel);
+  models = modelList;
+  renderModels(settings.rewriteModel, settings.chatModel);
 
   els.autoLaunch.checked = settings.autoLaunch;
   els.chatContext.value = settings.chatContext;
@@ -252,7 +289,7 @@ async function testKey() {
   }
 
   await save();
-  setStatus(`Testing ${els.rewriteModel.value}…`);
+  setStatus(`Testing ${els.rewriteModel.value}…`, "", { sticky: true });
 
   const result = await window.api.testKey();
   if (result.ok) setStatus("Key works! ✓", "ok");
@@ -270,7 +307,7 @@ async function onContinue() {
 
   els.continue.disabled = true;
   els.key.value = key; // shared save() reads from the main field
-  setStatus("Checking your key…");
+  setStatus("Checking your key…", "", { sticky: true });
 
   await save();
   const result = await window.api.testKey();
@@ -327,6 +364,11 @@ function showTab(name) {
 for (const tab of document.querySelectorAll(".tab")) {
   tab.addEventListener("click", () => showTab(tab.dataset.tab));
 }
+
+window.api.onModelsUpdated((list) => {
+  models = list;
+  renderModels();
+});
 
 els.save.addEventListener("click", save);
 els.test.addEventListener("click", testKey);

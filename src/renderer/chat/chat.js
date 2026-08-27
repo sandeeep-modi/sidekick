@@ -23,6 +23,7 @@ const els = {
 
 let history = [];
 let busy = false;
+let confirmOnEnd = true;
 
 let pendingAction = null;
 let sessionId = 0;
@@ -200,17 +201,22 @@ async function sendMessage() {
   setInputEnabled(true);
 }
 
+// Clear only once the window is out of sight, so the transcript doesn't
+// visibly blank out for a frame on the way down.
+async function endSession(action) {
+  if (action === "hide") await window.api.hide().catch(() => {});
+  resetSession();
+}
+
 function runPending() {
   const action = pendingAction;
   pendingAction = null;
-  if (action === "reset") resetSession();
-  else if (action === "hide") window.api.hide();
+  endSession(action);
 }
 
 function offerSave(action) {
-  if (history.length === 0) {
-    if (action === "reset") resetSession();
-    else if (action === "hide") window.api.hide();
+  if (!confirmOnEnd || history.length === 0) {
+    endSession(action);
     return;
   }
   pendingAction = action;
@@ -356,16 +362,18 @@ document.addEventListener("keydown", (event) => {
   else window.api.hide();
 });
 
-window.api.onRefresh(({ model }) => {
+window.api.onRefresh(({ model, closeWarning }) => {
   els.modelName.textContent = model;
+  confirmOnEnd = closeWarning;
   els.input.focus();
 });
 
 window.api.onCloseRequested(requestClose);
 
 async function init() {
-  const { model } = await window.api.init();
+  const { model, closeWarning } = await window.api.init();
   els.modelName.textContent = model;
+  confirmOnEnd = closeWarning;
   resetSession();
 }
 

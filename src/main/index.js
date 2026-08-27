@@ -2,6 +2,8 @@ const { app } = require("electron");
 const store = require("./store");
 const chats = require("./chats");
 const { notify } = require("./notifications");
+const models = require("./model-cache");
+const autoLaunch = require("./auto-launch");
 const { createTray } = require("./tray");
 const { installAppMenu } = require("./menu");
 const { registerIpc, applyShortcuts } = require("./ipc");
@@ -38,6 +40,7 @@ if (!app.requestSingleInstanceLock()) {
       notify("Your settings file was unreadable and has been reset. A copy was kept.");
     }
     chats.init(app.getPath("userData"));
+    models.init(app.getPath("userData"));
     const settings = store.all();
 
     createTray({
@@ -65,18 +68,13 @@ if (!app.requestSingleInstanceLock()) {
       );
     }
 
-    if (app.isPackaged && settings.autoLaunch) {
-      app.setLoginItemSettings({ openAtLogin: true, args: ["--hidden"] });
-      if (!app.getLoginItemSettings().openAtLogin) {
-        notify(
-          "Start at login couldn't be enabled. Move Sidekick to your Applications folder and try again from Settings."
-        );
-      }
-    }
+    // No notification if this fails: Settings reports it inline when the user
+    // actually toggles the checkbox, which is the only place they can act on it.
+    if (app.isPackaged && settings.autoLaunch) autoLaunch.apply(true);
 
-    const openedAtLogin =
-      process.argv.includes("--hidden") || app.getLoginItemSettings().wasOpenedAtLogin;
-    if (!openedAtLogin) showSettingsWindow();
+    models.startPeriodicRefresh(() => store.all().apiKey);
+
+    if (!autoLaunch.wasOpenedAtLogin()) showSettingsWindow();
 
     if (process.platform === "darwin" && !app.isPackaged) app.dock?.hide();
   });

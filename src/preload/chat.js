@@ -4,7 +4,6 @@ contextBridge.exposeInMainWorld("api", {
   init: () => ipcRenderer.invoke("chat:init"),
   send: (payload) => ipcRenderer.invoke("chat:send", payload),
   hide: () => ipcRenderer.invoke("chat:hide"),
-  setCloseWarning: (enabled) => ipcRenderer.invoke("chat:setCloseWarning", enabled),
 
   saveChat: (history) => ipcRenderer.invoke("chat:save", history),
   listChats: () => ipcRenderer.invoke("chat:list"),
