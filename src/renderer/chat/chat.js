@@ -195,6 +195,7 @@ async function sendMessage() {
   } else {
     appendBubble("ai", result.reply, { scroll: "top" });
     history.push({ role: "model", text: result.reply });
+    if (result.switchedFrom) els.modelName.textContent = `${result.model} (auto-switched)`;
   }
 
   busy = false;

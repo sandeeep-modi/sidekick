@@ -100,8 +100,13 @@ function registerIpc() {
 
     const { apiKey, tone, rewriteModel } = store.all();
     try {
-      await rewriteText("hello there, quick test", tone, apiKey, rewriteModel);
-      return { ok: true };
+      const { model, switchedFrom } = await rewriteText(
+        "hello there, quick test",
+        tone,
+        apiKey,
+        rewriteModel
+      );
+      return { ok: true, model, switchedFrom };
     } catch (error) {
       return { ok: false, error: String(error?.message || error) };
     }
@@ -133,14 +138,14 @@ function registerIpc() {
     if (!apiKey) return { error: "NO_KEY" };
 
     try {
-      const reply = await chatMessage({
+      const { text, model, switchedFrom } = await chatMessage({
         history,
         userText,
         context: chatContext,
         apiKey,
         model: chatModel,
       });
-      return { reply };
+      return { reply: text, model, switchedFrom };
     } catch (error) {
       return { error: String(error?.message || error) };
     }

@@ -89,18 +89,25 @@ async function doRewrite() {
     }
 
     const startedAt = Date.now();
-    const rewritten = await rewriteText(selection, tone, apiKey, rewriteModel);
+    const { text: rewritten, switchedFrom } = await rewriteText(
+      selection,
+      tone,
+      apiKey,
+      rewriteModel
+    );
     clipboard.writeText(rewritten);
+
+    const doneLabel = switchedFrom ? "Rewritten (switched model)" : "Rewritten";
 
     if (Date.now() - startedAt <= AUTO_PASTE_MAX_ELAPSED_MS) {
       await wait(PASTE_SETTLE_MS);
       await pasteClipboard();
       await wait(PASTE_SETTLE_MS);
-      finish("done", "Rewritten", HIDE_AFTER_SUCCESS_MS);
+      finish("done", doneLabel, HIDE_AFTER_SUCCESS_MS);
     } else {
       // Deliberately leave the rewritten text on the clipboard for a manual paste.
       restoreClipboard = false;
-      finish("done", "Rewritten — press Ctrl+V", HIDE_AFTER_ERROR_MS);
+      finish("done", `${doneLabel} — press Ctrl+V`, HIDE_AFTER_ERROR_MS);
     }
   } catch (error) {
     finish("error", shortError(error), HIDE_AFTER_ERROR_MS);

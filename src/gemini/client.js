@@ -1,6 +1,10 @@
 const FALLBACK_MODEL = "gemini-3.1-flash-lite";
 
 const RETRY_STATUSES = new Set([500, 502, 503, 504]);
+// Worth switching models for: the request never got an answer (timeout/busy),
+// or this model specifically isn't working for this key (404/429). A 400 or a
+// safety block would fail identically on the fallback model, so those aren't here.
+const FALLBACK_ELIGIBLE_STATUSES = new Set([404, 429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAYS_MS = [600, 1500];
 
@@ -36,10 +40,8 @@ async function errorFor(res) {
   return new Error(`Gemini error ${res.status}${detail ? `: ${detail}` : ""}`);
 }
 
-async function generate({ contents, apiKey, model, temperature = 0.7 }) {
-  if (!apiKey) throw new Error("NO_KEY");
-
-  const url = endpoint(model || FALLBACK_MODEL);
+async function requestModel(model, contents, apiKey, temperature) {
+  const url = endpoint(model);
   const request = {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -58,16 +60,22 @@ async function generate({ contents, apiKey, model, temperature = 0.7 }) {
         throw new Error("Network error — check your connection.", { cause: error });
       }
       if (lastAttempt) {
-        throw new Error(
+        const err = new Error(
           "Timed out — the model is slow right now. Try again, or pick a faster model."
         );
+        err.fallbackEligible = true;
+        throw err;
       }
       await sleep(RETRY_DELAYS_MS[attempt - 1]);
       continue;
     }
 
     if (res.ok) break;
-    if (!RETRY_STATUSES.has(res.status) || lastAttempt) throw await errorFor(res);
+    if (!RETRY_STATUSES.has(res.status) || lastAttempt) {
+      const err = await errorFor(res);
+      if (FALLBACK_ELIGIBLE_STATUSES.has(res.status)) err.fallbackEligible = true;
+      throw err;
+    }
 
     await res.body?.cancel();
     await sleep(RETRY_DELAYS_MS[attempt - 1]);
@@ -80,6 +88,25 @@ async function generate({ contents, apiKey, model, temperature = 0.7 }) {
     throw new Error(blocked ? `Blocked by safety filter (${blocked}).` : "No text returned.");
   }
   return text;
+}
+
+// Tries the requested model; if it fails in a way another model could plausibly
+// fix (timeout, busy, quota, not-found), silently retries once on FALLBACK_MODEL
+// instead of surfacing the error. Callers get back which model actually answered.
+async function generate({ contents, apiKey, model, temperature = 0.7 }) {
+  if (!apiKey) throw new Error("NO_KEY");
+
+  const requested = model || FALLBACK_MODEL;
+
+  try {
+    const text = await requestModel(requested, contents, apiKey, temperature);
+    return { text, model: requested };
+  } catch (error) {
+    if (requested === FALLBACK_MODEL || !error.fallbackEligible) throw error;
+
+    const text = await requestModel(FALLBACK_MODEL, contents, apiKey, temperature);
+    return { text, model: FALLBACK_MODEL, switchedFrom: requested };
+  }
 }
 
 async function listModels(apiKey) {

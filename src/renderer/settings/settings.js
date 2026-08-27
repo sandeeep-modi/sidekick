@@ -292,8 +292,16 @@ async function testKey() {
   setStatus(`Testing ${els.rewriteModel.value}…`, "", { sticky: true });
 
   const result = await window.api.testKey();
-  if (result.ok) setStatus("Key works! ✓", "ok");
-  else setError("Test failed", result.error);
+  if (result.ok) {
+    setStatus(
+      result.switchedFrom
+        ? `Key works! ✓ (${result.switchedFrom} was slow — switched to ${result.model})`
+        : "Key works! ✓",
+      "ok"
+    );
+  } else {
+    setError("Test failed", result.error);
+  }
 }
 
 async function onContinue() {
